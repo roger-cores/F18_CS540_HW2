@@ -6,5 +6,4 @@
 
 #### Please add your comments below in case your implementation is not fully working:
 
-* 
-* 
+I found red-black trees too difficult to implement, so I have used implementation from online: https://www.geeksforgeeks.org/red-black-tree-set-3-delete-2/
