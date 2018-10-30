@@ -11,10 +11,15 @@ namespace cs540 {
   template <typename Key_T, typename Mapped_T>
   class RBTree;
 
+  template <typename Key_T, typename Mapped_T>
+  class Map;
+
   /**
   I have used the red-black tree implementation over here:
   https://www.geeksforgeeks.org/red-black-tree-set-3-delete-2/
   And modified it to support the Map parameters
+
+  TODO Map Implementation is after line number 488!
   **/
   template <typename Key_T, typename Mapped_T>
   class Node {
@@ -23,6 +28,8 @@ namespace cs540 {
     COLOR color;
     Node *left, *right, *parent;
     friend class RBTree<Key_T, Mapped_T>;
+    friend class Map<Key_T, Mapped_T>;
+
 
     public:
     Node(const pair<Key_T, Mapped_T> &p) : val(p), left(NULL), right(NULL), parent(NULL), color(RED) { }
@@ -43,6 +50,8 @@ namespace cs540 {
 
     // check if node is left child of parent
     bool isOnLeft() { return this == parent->left; }
+
+    bool isOnRight() { return this == parent->right; }
 
     // returns pointer to sibling
     Node *sibling() {
@@ -78,7 +87,7 @@ namespace cs540 {
   template <typename Key_T, typename Mapped_T>
   class RBTree {
     Node<Key_T, Mapped_T> *root;
-
+    friend class Map<Key_T, Mapped_T>;
     // left rotates the given node
     void leftRotate(Node<Key_T, Mapped_T> *x) {
     	// new parent will be node's right child
@@ -392,7 +401,7 @@ namespace cs540 {
     // searches for given value
     // if found returns the node (used for delete)
     // else returns the last node while traversing (used in insert)
-    Node<Key_T, Mapped_T> *search(Key_T key) {
+    Node<Key_T, Mapped_T> *search(const Key_T key) const {
     	Node<Key_T, Mapped_T> *temp = root;
     	while (temp != NULL) {
       	if (key < temp->val.first) {
@@ -414,7 +423,7 @@ namespace cs540 {
     }
 
     // inserts the given value to tree
-    void insert(pair<Key_T, Mapped_T> n) {
+    void insert(const pair<Key_T, Mapped_T> &n) {
     	Node<Key_T, Mapped_T> *newNode = new Node<Key_T, Mapped_T>(n);
     	if (root == NULL) {
     	// when root is null
@@ -480,6 +489,122 @@ namespace cs540 {
     	levelOrder(root);
     	cout << endl;
     }
+  };
+
+  template<typename Key_T, typename Mapped_T>
+  class Map {
+    private:
+      RBTree<Key_T, Mapped_T> tree;
+
+    public:
+      Map() {} //creates an empty map
+
+      Map &operator=(const Map &m) { //TODO assignment
+
+      }
+
+      Map(initializer_list<pair<const Key_T, Mapped_T>> list) { //creates from initializer list
+        for(auto val : list) {
+          tree.insert(val);
+        }
+      }
+
+      ~Map() { //Destructor
+
+      }
+
+      void insert(const pair<Key_T, Mapped_T> &val) {
+        tree.insert(val);
+      }
+
+      Mapped_T &at(const Key_T &key) const {
+        Node<Key_T, Mapped_T> *node = tree.search(key);
+        if(node != NULL && node->val.first == key) return node->val.second;
+        else throw std::out_of_range("index is out of range");
+      }
+
+      class Iterator {
+        private:
+          Node<Key_T, Mapped_T>* current;
+          Iterator(Node<Key_T, Mapped_T>* root) : current(root) { } //point to root
+          friend class Map;
+
+          void goRight() { //increment in-order
+            if(current->right != NULL) {
+              current = current->right;
+              while(current->left != NULL) {
+                current = current->left;
+              }
+            } else {
+              Node<Key_T, Mapped_T>* temp = current;
+              while(temp->parent != NULL && temp->isOnRight()) {
+                temp = temp->parent;
+              }
+              current = temp->parent;
+            }
+          }
+
+          void goLeft() { //decrement in-order
+            if(current->left != NULL) {
+              current = current->left;
+              while(current->right != NULL) {
+                current = current->right;
+              }
+            } else {
+              Node<Key_T, Mapped_T>* temp = current;
+              while(temp->parent != NULL && temp->isOnLeft()) {
+                temp = temp->parent;
+              }
+              current = temp->parent;
+            }
+          }
+
+        public:
+          Iterator &operator++() { //prefix
+            goRight();
+            return *this;
+          }
+
+          Iterator operator++(int) { //postfix
+            Iterator temp = *(new Iterator(*this));
+            goRight();
+            return temp;
+          }
+
+          Iterator &operator--() { //prefix
+            goLeft();
+            return *this;
+          }
+
+          Iterator operator--(int) { //postfix
+            Iterator temp = *(new Iterator(*this));
+            goLeft();
+            return temp;
+          }
+
+          pair<Key_T, Mapped_T> &operator*() const {
+            return current->val;
+          }
+
+          pair<Key_T, Mapped_T> *operator->() const {
+            return &(current->val);
+          }
+
+      };
+
+      Iterator begin() {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->left != NULL) curr = curr->left;
+        return *(new Iterator(curr));
+      }
+
+      Iterator end() {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->right != NULL) curr = curr->right;
+        return *(new Iterator(curr));
+      }
+
+
   };
 
 }

@@ -20,12 +20,16 @@ class MyKeyType {
 
         MyKeyType(int i) : val(i) { }
 
-        bool operator<(const MyKeyType& other) const { 
+        bool operator<(const MyKeyType& other) const {
             return this->val < other.val;
         }
 
         bool operator==(const MyKeyType &other) const {
             return this->val == other.val;
+        }
+
+        int getKey() {
+          return val;
         }
 };
 
@@ -50,6 +54,8 @@ class MyValueType {
         bool operator==(const MyValueType &other) const {
             return this->val == other.val;
         }
+
+
 };
 
 class MyDefaultConstructible {
@@ -92,7 +98,7 @@ class MyAssignable {
         }
 };
 
-// manual instantiation, instantiates every member function instead of 
+// manual instantiation, instantiates every member function instead of
 // just the ones called
 template class cs540::Map<MyKeyType, MyDefaultConstructible>;
 
@@ -104,19 +110,30 @@ int main() {
     m.insert({{5}, {3}});
     m.insert({{7}, {3}});
     m.at(2);
-    auto iter = m.find(2);
-    m.erase(iter);
-    auto m_copy = m;
-    assert(m_copy == m);
 
-    cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
-    m2[10]; // should default construct these values
-    m2[15];
+    auto it = m.begin();
+    assert(it->first.getKey() == 1);
+    auto it2 = it++;
+    assert(it->first.getKey() == 2);
+    assert(it2->first.getKey() == 1);
 
-    cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
-    m3[20] = {5}; // move assign
-    MyAssignable ma{1};
-    m3[10] = ma; //copy assign
+    auto it3 = m.end();
+    --it3;
+    assert(it3->first.getKey() == 7);
+
+    // auto iter = m.find(2);
+    // m.erase(iter);
+    // auto m_copy = m;
+    // assert(m_copy == m);
+    //
+    // cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
+    // m2[10]; // should default construct these values
+    // m2[15];
+    //
+    // cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
+    // m3[20] = {5}; // move assign
+    // MyAssignable ma{1};
+    // m3[10] = ma; //copy assign
 
     return 0;
 }
