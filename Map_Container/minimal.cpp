@@ -152,7 +152,7 @@ int main() {
     assert(end->first.getKey() == 1);
     assert(end2->first.getKey() == 2);
 
-    cs540::Map<MyKeyType, MyValueType>::ConstIterator cbeg = m.begin();
+
 
 
 

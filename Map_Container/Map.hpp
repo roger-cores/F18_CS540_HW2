@@ -49,9 +49,9 @@ namespace cs540 {
     }
 
     // check if node is left child of parent
-    bool isOnLeft() { return this == parent->left; }
+    bool isOnLeft() const { return this == parent->left; }
 
-    bool isOnRight() { return this == parent->right; }
+    bool isOnRight() const { return this == parent->right; }
 
     // returns pointer to sibling
     Node *sibling() {
@@ -523,6 +523,11 @@ namespace cs540 {
         else throw std::out_of_range("index is out of range");
       }
 
+      class BaseIterator {
+        protected:
+          
+      }
+
       class Iterator {
         protected:
           Node<Key_T, Mapped_T>* current;
@@ -608,15 +613,85 @@ namespace cs540 {
 
       };
 
-      class ConstIterator : public Iterator {
+      class ReverseIterator : public Iterator {
         protected:
+          ReverseIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : Iterator(root, end) { }
+        public:
+          ReverseIterator &operator++() { //prefix
+            goRight();
+            return *this;
+          }
+      };
+
+
+
+      class ConstIterator {
+        private:
           const Node<Key_T, Mapped_T>* current;
-          ConstIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : Iterator(root, end) {
-            current = root;
-          } //point to root
+          bool end;
+          ConstIterator() = delete;
+          ConstIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : current(root), end(end) { } //point to root
           friend class Map;
 
+          void goRight() { //increment in-order
+            if(current->right != NULL) {
+              current = current->right;
+              while(current->left != NULL) {
+                current = current->left;
+              }
+            } else {
+              const Node<Key_T, Mapped_T>* temp = current;
+              while(temp->parent != NULL && temp->isOnRight()) {
+                temp = temp->parent;
+              }
+              if(temp->parent != NULL && temp->isOnLeft())
+                current = temp->parent;
+              else end = 1;
+            }
+          }
+
+          void goLeft() { //decrement in-order
+            if(end == 1) {
+              end = 0;
+              return;
+            }
+            if(current->left != NULL) {
+              current = current->left;
+              while(current->right != NULL) {
+                current = current->right;
+              }
+            } else {
+              const Node<Key_T, Mapped_T>* temp = current;
+              while(temp->parent != NULL && temp->isOnLeft()) {
+                temp = temp->parent;
+              }
+              current = temp->parent;
+            }
+          }
+
         public:
+          ConstIterator &operator++() { //prefix
+            goRight();
+            return *this;
+          }
+
+          ConstIterator operator++(int) { //postfix
+            ConstIterator temp = *(new ConstIterator(*this));
+            goRight();
+            return temp;
+          }
+
+          ConstIterator &operator--() { //prefix
+            goLeft();
+            return *this;
+          }
+
+          ConstIterator operator--(int) { //postfix
+            ConstIterator temp = *(new ConstIterator(*this));
+            goLeft();
+            return temp;
+          }
+
           const pair<Key_T, Mapped_T> &operator*() const {
             return current->val;
           }
@@ -624,6 +699,31 @@ namespace cs540 {
           const pair<Key_T, Mapped_T> *operator->() const {
             return &(current->val);
           }
+
+          friend bool operator==(const ConstIterator &it1, const ConstIterator &it2) {
+            return it1.current == it2.current && it1.end == it2.end;
+          }
+
+          friend bool operator!=(const ConstIterator &it1, const ConstIterator &it2) {
+            return it1.end != it2.end || it1.current != it2.current;
+          }
+
+          friend bool operator==(const Iterator &it1, const ConstIterator &it2) {
+            return it1.current == it2.current && it1.end == it2.end;
+          }
+
+          friend bool operator==(const ConstIterator &it1, const Iterator &it2) {
+            return it1.current == it2.current && it1.end == it2.end;
+          }
+
+          friend bool operator!=(const Iterator &it1, const ConstIterator &it2) {
+            return it1.end != it2.end || it1.current != it2.current;
+          }
+
+          friend bool operator!=(const ConstIterator &it1, const Iterator &it2) {
+            return it1.end != it2.end || it1.current != it2.current;
+          }
+
       };
 
       Iterator begin() {
