@@ -524,9 +524,11 @@ namespace cs540 {
       }
 
       class Iterator {
-        private:
+        protected:
           Node<Key_T, Mapped_T>* current;
-          Iterator(Node<Key_T, Mapped_T>* root) : current(root) { } //point to root
+          bool end;
+          Iterator() = delete;
+          Iterator(Node<Key_T, Mapped_T>* root, bool end = 0) : current(root), end(end) { } //point to root
           friend class Map;
 
           void goRight() { //increment in-order
@@ -540,11 +542,17 @@ namespace cs540 {
               while(temp->parent != NULL && temp->isOnRight()) {
                 temp = temp->parent;
               }
-              current = temp->parent;
+              if(temp->parent != NULL && temp->isOnLeft())
+                current = temp->parent;
+              else end = 1;
             }
           }
 
           void goLeft() { //decrement in-order
+            if(end == 1) {
+              end = 0;
+              return;
+            }
             if(current->left != NULL) {
               current = current->left;
               while(current->right != NULL) {
@@ -590,6 +598,32 @@ namespace cs540 {
             return &(current->val);
           }
 
+          friend bool operator==(const Iterator &it1, const Iterator &it2) {
+            return it1.current == it2.current && it1.end == it2.end;
+          }
+
+          friend bool operator!=(const Iterator &it1, const Iterator &it2) {
+            return it1.end != it2.end || it1.current != it2.current;
+          }
+
+      };
+
+      class ConstIterator : public Iterator {
+        protected:
+          const Node<Key_T, Mapped_T>* current;
+          ConstIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : Iterator(root, end) {
+            current = root;
+          } //point to root
+          friend class Map;
+
+        public:
+          const pair<Key_T, Mapped_T> &operator*() const {
+            return current->val;
+          }
+
+          const pair<Key_T, Mapped_T> *operator->() const {
+            return &(current->val);
+          }
       };
 
       Iterator begin() {
@@ -598,13 +632,24 @@ namespace cs540 {
         return *(new Iterator(curr));
       }
 
+      ConstIterator begin() const {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->left != NULL) curr = curr->left;
+        return *(new ConstIterator(curr));
+      }
+
+      ConstIterator end() const {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->right != NULL) curr = curr->right;
+        return *(new ConstIterator(curr, 1));
+      }
+
       Iterator end() {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new Iterator(curr));
+        return *(new Iterator(curr, 1));
       }
 
 
   };
-
 }

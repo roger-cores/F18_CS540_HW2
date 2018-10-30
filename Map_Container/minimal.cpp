@@ -121,6 +121,41 @@ int main() {
     --it3;
     assert(it3->first.getKey() == 7);
 
+    auto start = m.begin();
+    auto end = m.end();
+
+    ++start; //points to Second
+    ++start; //points to Third
+    --end; //points to fifth
+    --end; //points to fourth
+    --end; //points to third
+
+    assert(start == end);
+
+    ++start; // points to fourth
+    ++start; //points to fifth
+    ++start; //points to one past fifth (last)
+
+    assert(start == m.end());
+
+    --end; //points to second
+    --end; //points to first
+
+    assert(end == m.begin());
+    assert(end != start);
+
+    auto end2 = end++;
+    assert(end->first.getKey() == 2);
+    assert(end2->first.getKey() == 1);
+
+    end2 = end--;
+    assert(end->first.getKey() == 1);
+    assert(end2->first.getKey() == 2);
+
+    cs540::Map<MyKeyType, MyValueType>::ConstIterator cbeg = m.begin();
+
+
+
     // auto iter = m.find(2);
     // m.erase(iter);
     // auto m_copy = m;
