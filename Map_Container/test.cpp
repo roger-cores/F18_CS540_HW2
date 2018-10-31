@@ -98,6 +98,154 @@ void count_words() {
 
 }
 
+void other_tests() {
+  cs540::Map<int, int> m{{3, 5}};
+  m.insert({2, 3});
+  m.insert({1, 3});
+  m.insert({{5}, {3}});
+  m.insert({{7}, {3}});
+  m.at(2);
+
+  int arr[] = {1, 2, 3, 5, 7};
+  int i;
+  int l = sizeof(arr)/sizeof(arr[0]);
+
+  auto it = m.begin();
+  assert(it->first == 1);
+  auto it2 = it++;
+  assert(it->first == 2);
+  assert(it2->first == 1);
+
+  auto it3 = m.end();
+  --it3;
+  assert(it3->first == 7);
+
+  auto start = m.begin();
+  auto end = m.end();
+
+  ++start; //points to Second
+  ++start; //points to Third
+  --end; //points to fifth
+  --end; //points to fourth
+  --end; //points to third
+
+  assert(start == end);
+
+  ++start; // points to fourth
+  ++start; //points to fifth
+  ++start; //points to one past fifth (last)
+
+  assert(start == m.end());
+
+  --end; //points to second
+  --end; //points to first
+
+  assert(end == m.begin());
+  assert(end != start);
+
+  auto end2 = end++;
+  assert(end->first == 2);
+  assert(end2->first == 1);
+
+  end2 = end--;
+  assert(end->first == 1);
+  assert(end2->first == 2);
+
+  start = m.begin();
+  cout << endl;
+  i = 0;
+  while(start != m.end()) {
+    cout << start->first << ", ";
+    assert(arr[i] == start->first);
+    ++start;
+    ++i;
+  }
+  cout << endl;
+
+  end = m.end();
+  --end;
+  cout << endl;
+  i = l-1;
+  while(end != (--m.begin())) {
+    cout << end->first << ", ";
+    assert(arr[i] == end->first);
+    --end;
+    --i;
+  }
+  cout << endl;
+
+  auto revit = m.rbegin();
+  cout << endl;
+  i=l-1;
+  while(revit != m.rend()) {
+    cout << revit->first << ", ";
+    assert(arr[i] == revit->first);
+    ++revit;
+    --i;
+  }
+  cout << endl;
+
+
+
+
+
+  auto iter = m.find(2);
+  assert(iter->first == 2);
+
+  // m.erase(iter);
+
+  auto m_copy_construct (m);
+  assert(m_copy_construct.begin()->first == 1);
+  start = m_copy_construct.begin();
+  cout << endl;
+  i = 0;
+  while(start != m_copy_construct.end()) {
+    cout << start->first << ", ";
+    assert(arr[i] == start->first);
+    ++start;
+    ++i;
+  }
+  cout << endl;
+  assert(m_copy_construct.size() == m.size());
+  assert(m_copy_construct == m);
+
+  auto m_copy = m;
+  assert(m_copy == m);
+  m_copy.insert({{123}, {3}});
+  assert(m_copy != m);
+  assert(m_copy.find(123)->first == 123);
+  //
+  assert(m_copy.rbegin() != m.rbegin());
+  //
+  cs540::Map<int, int> m2{{8, 9}};
+  m2[10]; // should default construct these values
+  m2[15];
+
+  assert(m2.find(15)->first == 15); //constructed
+  assert(m2.find(10)->first == 10);
+  //
+  cs540::Map<int, int> m3{{6, 7}};
+  m3[20] = {5}; // move assign
+  int ma{1};
+  m3[10] = ma; //copy assign
+
+
+  end = m.end();
+  assert(end == std::end(m));
+  end = m.find(31434545);
+  cout << "----" << end->first << "----" << endl;
+  assert(end == std::end(m));
+
+
+
+  std::vector<std::pair<int, int>> v{{1, 2}, {2, 3}};
+  cs540::Map<int, int> m5;
+  m5.insert(v.begin(), v.end());
+  assert(m5.size() == 2);
+  assert(m5.find(1)->second == 2);
+  assert(m5.find(2)->second == 3);
+}
+
 // creates a mapping from the values in the range [low, high) to their cubes
 cs540::Map<int, int> cubes(int low, int high) {
     cs540::Map<int, int> cb;
@@ -135,6 +283,10 @@ int main () {
 
     access_by_key();
     stress(10000);
+    other_tests();
+
+
+
 
     return 0;
 }

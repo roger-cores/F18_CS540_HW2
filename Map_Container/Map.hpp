@@ -139,10 +139,10 @@ namespace cs540 {
     }
 
     void swapValues(Node<Key_T, Mapped_T> *u, Node<Key_T, Mapped_T> *v) {
-    	// pair<Key_T, Mapped_T> temp;
-    	// temp = u->val;
-    	// u->val = v->val;
-    	// v->val = temp; TODO
+    	pair<Key_T, Mapped_T> temp;
+    	temp = u->val;
+    	u->val = v->val;
+    	v->val = temp;
     }
 
     // fix red red at given node
@@ -260,7 +260,7 @@ namespace cs540 {
     	// v has 1 child
     	if (v == root) {
     		// v is root, assign the value of u to v, and delete u
-    		// v->val = u->val;
+    		v->val = u->val;
 
     		v->left = v->right = NULL;
     		delete u;
@@ -436,6 +436,8 @@ namespace cs540 {
 
     	if (temp != NULL && temp->val.first == n.first) {
     		// return if value already exists
+        delete newNode;
+        newNode = 0;
     		return 0;
     	}
 
@@ -499,6 +501,13 @@ namespace cs540 {
       RBTree<Key_T, Mapped_T> tree;
       size_t length = 0;
 
+      void recurDelete(Node<Key_T,Mapped_T> *node) {
+        if(node==NULL) return;
+        recurDelete(node->left);
+        recurDelete(node->right);
+        delete node;
+      }
+
     public:
       Map() {} //creates an empty map
 
@@ -531,6 +540,8 @@ namespace cs540 {
 
       }
 
+
+
       size_t size() const {
         return length;
       }
@@ -547,6 +558,15 @@ namespace cs540 {
       void insert(const pair<Key_T, Mapped_T> &val) {
         if(tree.insert(val)) {
           ++length;
+        }
+      }
+
+      template <typename IT_T>
+      void insert(IT_T range_beg, IT_T range_end) {
+        while(range_beg != range_end) {
+          tree.insert(*range_beg);
+          ++length;
+          ++range_beg;
         }
       }
 
@@ -769,37 +789,37 @@ namespace cs540 {
       Iterator begin() {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->left != NULL) curr = curr->left;
-        return *(new Iterator(curr));
+        return Iterator(curr);
       }
 
       ConstIterator begin() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->left != NULL) curr = curr->left;
-        return *(new ConstIterator(curr));
+        return ConstIterator(curr);
       }
 
       ConstIterator end() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new ConstIterator(curr, 1, 0));
+        return ConstIterator(curr, 1, 0);
       }
 
       Iterator end() {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new Iterator(curr, 1, 0));
+        return Iterator(curr, 1, 0);
       }
 
       ReverseIterator rend() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->left != NULL) curr = curr->left;
-        return *(new ReverseIterator(curr, 0, 1));
+        return ReverseIterator(curr, 0, 1);
       }
 
       ReverseIterator rbegin() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new ReverseIterator(curr));
+        return ReverseIterator(curr);
       }
 
       Iterator find(const Key_T &key) {
@@ -807,7 +827,7 @@ namespace cs540 {
         if(!(node->val.first == key)) {
           return end();
         } else {
-          return *(new Iterator(node));
+          return Iterator(node);
         }
       }
 
@@ -816,12 +836,13 @@ namespace cs540 {
         if(!(node->val.first == key)) {
           return end();
         } else {
-          return *(new ConstIterator(node));
+          return ConstIterator(node);
         }
       }
 
       void erase(Iterator pos) {
         tree.deleteNode(pos.current);
+        --length;
       }
       void erase(const Key_T &key) {
         Node<Key_T, Mapped_T> *node = tree.search(key);
@@ -829,6 +850,7 @@ namespace cs540 {
           throw std::out_of_range("index is out of range");
         } else {
           tree.deleteNode(node);
+          --length;
         }
       }
 
