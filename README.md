@@ -10,4 +10,4 @@ I found red-black trees too difficult to implement, so I have used implementatio
 
 I haven't managed to remove all the leaks. My implementation does not work for cases where assignment operator in Key_T and Mapped_T is deleted. I have implemented given types if Iterators and Map features. Tests are written in the function other_tests() in test.cpp
 
-all files other than minimal.cpp and test-kec.cpp work
+all files other than minimal.cpp and test-kec.cpp work 
