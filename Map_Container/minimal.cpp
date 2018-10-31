@@ -202,22 +202,40 @@ int main() {
     assert(iter->first.getKey() == 2);
 
     // m.erase(iter);
-    auto m_copy = m;
+
+    auto m_copy_construct (m);
+    assert(m_copy_construct.begin()->first.getKey() == 1);
+    start = m_copy_construct.begin();
+    cout << endl;
+    i = 0;
+    while(start != m_copy_construct.end()) {
+      cout << start->first.getKey() << ", ";
+      assert(arr[i] == start->first.getKey());
+      ++start;
+      ++i;
+    }
+    cout << endl << m_copy_construct.size() << " " << m.size();
+    assert(m_copy_construct.size() == m.size());
+    assert(m_copy_construct == m);
+
+    // auto m_copy = m;
     // m_copy.insert({{123}, {3}});
-    // assert(m_copy.rbegin() != m.rbegin());
+    // assert(m_copy.find(123)->first.getKey() == 123);
+    //
+    // // assert(m_copy.rbegin() != m.rbegin());
     // assert(m_copy == m);
     //
-    cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
-    m2[10]; // should default construct these values
-    m2[15];
-
-    assert(m2.find(15)->first == 15); //constructed
-    assert(m2.find(10)->first == 10);
+    // cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
+    // m2[10]; // should default construct these values
+    // m2[15];
     //
-    cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
-    m3[20] = {5}; // move assign
-    MyAssignable ma{1};
-    m3[10] = ma; //copy assign
+    // assert(m2.find(15)->first.getKey() == 15); //constructed
+    // assert(m2.find(10)->first.getKey() == 10);
+    // //
+    // cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
+    // m3[20] = {5}; // move assign
+    // MyAssignable ma{1};
+    // m3[10] = ma; //copy assign
 
     return 0;
 }

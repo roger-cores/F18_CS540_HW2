@@ -502,17 +502,28 @@ namespace cs540 {
     public:
       Map() {} //creates an empty map
 
-      Map(const Map &) {
-
+      Map(const Map &m) {
+        auto it = m.begin();
+        while(it != m.end()){
+          this->tree.insert(pair<Key_T, Mapped_T>(Key_T(it->first), Mapped_T(it->second)));
+          ++it;
+        }
+        length = m.length;
       }
 
       Map &operator=(const Map &m) { //TODO assignment
-
+        auto it = m.begin();
+        while(it != m.end()){
+          this->tree.insert(pair<Key_T, Mapped_T>(Key_T(it->first), Mapped_T(it->second)));
+          ++it;
+        }
+        length = m.length;
       }
 
       Map(initializer_list<pair<const Key_T, Mapped_T>> list) { //creates from initializer list
         for(auto val : list) {
           tree.insert(val);
+          ++length;
         }
       }
 
@@ -543,6 +554,30 @@ namespace cs540 {
         Node<Key_T, Mapped_T> *node = tree.search(key);
         if(node != NULL && node->val.first == key) return node->val.second;
         else throw std::out_of_range("index is out of range");
+      }
+
+      // const Mapped_T &at(const Key_T &key) const {
+      //   Node<Key_T, Mapped_T> *node = tree.search(key);
+      //   if(node != NULL && node->val.first == key) return node->val.second;
+      //   else throw std::out_of_range("index is out of range");
+      // }
+
+      friend bool operator==(const Map &m1, const Map &m2) {
+        if(m1.size() != m2.size()) return false;
+
+        auto it1 = m1.begin();
+        auto it2 = m2.begin();
+
+        while(it1 != m1.end()) { //same size, no need to check more bounds
+          if(!(it1->first == it2->first)) return false;
+          ++it1;
+        }
+
+        return true;
+      }
+
+      friend bool operator!=(const Map &m1, const Map &m2) {
+        return !(m1==m2);
       }
 
       class BaseIterator {
@@ -780,7 +815,7 @@ namespace cs540 {
         }
       }
 
-      
+
 
   };
 }
