@@ -139,10 +139,10 @@ namespace cs540 {
     }
 
     void swapValues(Node<Key_T, Mapped_T> *u, Node<Key_T, Mapped_T> *v) {
-    	pair<Key_T, Mapped_T> temp;
-    	temp = u->val;
-    	u->val = v->val;
-    	v->val = temp;
+    	// pair<Key_T, Mapped_T> temp;
+    	// temp = u->val;
+    	// u->val = v->val;
+    	// v->val = temp; TODO
     }
 
     // fix red red at given node
@@ -260,7 +260,8 @@ namespace cs540 {
     	// v has 1 child
     	if (v == root) {
     		// v is root, assign the value of u to v, and delete u
-    		v->val = u->val;
+    		// v->val = u->val;
+
     		v->left = v->right = NULL;
     		delete u;
     	} else {
@@ -406,14 +407,14 @@ namespace cs540 {
     	while (temp != NULL) {
       	if (key < temp->val.first) {
       		if (temp->left == NULL)
-      		break;
+      		  break;
       		else
       		temp = temp->left;
       	} else if (key == temp->val.first) {
-      		break;
+      		  break;
       	} else {
       		if (temp->right == NULL)
-      		break;
+      		  break;
       		else
       		temp = temp->right;
       	}
@@ -423,7 +424,7 @@ namespace cs540 {
     }
 
     // inserts the given value to tree
-    void insert(const pair<Key_T, Mapped_T> &n) {
+    bool insert(const pair<Key_T, Mapped_T> &n) {
     	Node<Key_T, Mapped_T> *newNode = new Node<Key_T, Mapped_T>(n);
     	if (root == NULL) {
     	// when root is null
@@ -435,7 +436,7 @@ namespace cs540 {
 
     	if (temp != NULL && temp->val.first == n.first) {
     		// return if value already exists
-    		return;
+    		return 0;
     	}
 
     	// if value is not found, search returns the node
@@ -452,6 +453,7 @@ namespace cs540 {
     	// fix red red voilaton if exists
     	fixRedRed(newNode);
     	}
+      return 1;
     }
 
     // utility function that deletes the node with given value
@@ -495,9 +497,14 @@ namespace cs540 {
   class Map {
     private:
       RBTree<Key_T, Mapped_T> tree;
+      size_t length = 0;
 
     public:
       Map() {} //creates an empty map
+
+      Map(const Map &) {
+
+      }
 
       Map &operator=(const Map &m) { //TODO assignment
 
@@ -513,8 +520,23 @@ namespace cs540 {
 
       }
 
+      size_t size() const {
+        return length;
+      }
+
+      Mapped_T &operator[](const Key_T &key) {
+        Node<Key_T, Mapped_T> *node = tree.search(key);
+        if(node != NULL && node->val.first == key) return node->val.second;
+        else {
+          tree.insert(pair<Key_T, Mapped_T>(key, Mapped_T()));
+          return at(key);
+        }
+      }
+
       void insert(const pair<Key_T, Mapped_T> &val) {
-        tree.insert(val);
+        if(tree.insert(val)) {
+          ++length;
+        }
       }
 
       Mapped_T &at(const Key_T &key) const {
@@ -525,18 +547,17 @@ namespace cs540 {
 
       class BaseIterator {
         protected:
-          
-      }
-
-      class Iterator {
-        protected:
           Node<Key_T, Mapped_T>* current;
           bool end;
-          Iterator() = delete;
-          Iterator(Node<Key_T, Mapped_T>* root, bool end = 0) : current(root), end(end) { } //point to root
+          bool start;
+          BaseIterator(Node<Key_T, Mapped_T>* root, bool end = 0, bool start = 0) : current(root), end(end), start(start) { } //point to root
           friend class Map;
 
           void goRight() { //increment in-order
+            if(start == 1) {
+              start = 0;
+              return;
+            }
             if(current->right != NULL) {
               current = current->right;
               while(current->left != NULL) {
@@ -568,162 +589,129 @@ namespace cs540 {
               while(temp->parent != NULL && temp->isOnLeft()) {
                 temp = temp->parent;
               }
-              current = temp->parent;
+              if(temp->parent != NULL && temp->isOnRight())
+                current = temp->parent;
+              else start = 1;
             }
           }
 
         public:
-          Iterator &operator++() { //prefix
-            goRight();
-            return *this;
+          friend bool operator==(const BaseIterator &it1, const BaseIterator &it2) {
+            return it1.end == it2.end && it1.start == it2.start && it1.current == it2.current;
           }
 
-          Iterator operator++(int) { //postfix
-            Iterator temp = *(new Iterator(*this));
-            goRight();
-            return temp;
-          }
-
-          Iterator &operator--() { //prefix
-            goLeft();
-            return *this;
-          }
-
-          Iterator operator--(int) { //postfix
-            Iterator temp = *(new Iterator(*this));
-            goLeft();
-            return temp;
-          }
-
-          pair<Key_T, Mapped_T> &operator*() const {
-            return current->val;
-          }
-
-          pair<Key_T, Mapped_T> *operator->() const {
-            return &(current->val);
-          }
-
-          friend bool operator==(const Iterator &it1, const Iterator &it2) {
-            return it1.current == it2.current && it1.end == it2.end;
-          }
-
-          friend bool operator!=(const Iterator &it1, const Iterator &it2) {
-            return it1.end != it2.end || it1.current != it2.current;
+          friend bool operator!=(const BaseIterator &it1, const BaseIterator &it2) {
+            return it1.end != it2.end || it1.start != it2.start || it1.current != it2.current;
           }
 
       };
 
-      class ReverseIterator : public Iterator {
+      class ConstIterator : public BaseIterator {
         protected:
-          ReverseIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : Iterator(root, end) { }
-        public:
-          ReverseIterator &operator++() { //prefix
-            goRight();
-            return *this;
-          }
-      };
-
-
-
-      class ConstIterator {
-        private:
-          const Node<Key_T, Mapped_T>* current;
-          bool end;
-          ConstIterator() = delete;
-          ConstIterator(Node<Key_T, Mapped_T>* root, bool end = 0) : current(root), end(end) { } //point to root
+          ConstIterator(Node<Key_T, Mapped_T>* root, bool end = 0, bool start = 0) : BaseIterator(root, end, start) { }
           friend class Map;
-
-          void goRight() { //increment in-order
-            if(current->right != NULL) {
-              current = current->right;
-              while(current->left != NULL) {
-                current = current->left;
-              }
-            } else {
-              const Node<Key_T, Mapped_T>* temp = current;
-              while(temp->parent != NULL && temp->isOnRight()) {
-                temp = temp->parent;
-              }
-              if(temp->parent != NULL && temp->isOnLeft())
-                current = temp->parent;
-              else end = 1;
-            }
-          }
-
-          void goLeft() { //decrement in-order
-            if(end == 1) {
-              end = 0;
-              return;
-            }
-            if(current->left != NULL) {
-              current = current->left;
-              while(current->right != NULL) {
-                current = current->right;
-              }
-            } else {
-              const Node<Key_T, Mapped_T>* temp = current;
-              while(temp->parent != NULL && temp->isOnLeft()) {
-                temp = temp->parent;
-              }
-              current = temp->parent;
-            }
-          }
-
         public:
           ConstIterator &operator++() { //prefix
-            goRight();
+            this->goRight();
             return *this;
           }
 
           ConstIterator operator++(int) { //postfix
             ConstIterator temp = *(new ConstIterator(*this));
-            goRight();
+            this->goRight();
             return temp;
           }
 
           ConstIterator &operator--() { //prefix
-            goLeft();
+            this->goLeft();
             return *this;
           }
 
           ConstIterator operator--(int) { //postfix
             ConstIterator temp = *(new ConstIterator(*this));
-            goLeft();
+            this->goLeft();
             return temp;
           }
 
           const pair<Key_T, Mapped_T> &operator*() const {
-            return current->val;
+            return this->current->val;
           }
 
           const pair<Key_T, Mapped_T> *operator->() const {
-            return &(current->val);
+            return &(this->current->val);
+          }
+      };
+
+      class Iterator : public BaseIterator {
+        protected:
+          Iterator(Node<Key_T, Mapped_T>* root, bool end = 0, bool start = 0) : BaseIterator(root, end, start) { }
+          friend class Map;
+        public:
+          Iterator &operator++() { //prefix
+            this->goRight();
+            return *this;
           }
 
-          friend bool operator==(const ConstIterator &it1, const ConstIterator &it2) {
-            return it1.current == it2.current && it1.end == it2.end;
+          Iterator operator++(int) { //postfix
+            Iterator temp = *(new Iterator(*this));
+            this->goRight();
+            return temp;
           }
 
-          friend bool operator!=(const ConstIterator &it1, const ConstIterator &it2) {
-            return it1.end != it2.end || it1.current != it2.current;
+          Iterator &operator--() { //prefix
+            this->goLeft();
+            return *this;
           }
 
-          friend bool operator==(const Iterator &it1, const ConstIterator &it2) {
-            return it1.current == it2.current && it1.end == it2.end;
+          Iterator operator--(int) { //postfix
+            Iterator temp = *(new Iterator(*this));
+            this->goLeft();
+            return temp;
           }
 
-          friend bool operator==(const ConstIterator &it1, const Iterator &it2) {
-            return it1.current == it2.current && it1.end == it2.end;
+          pair<Key_T, Mapped_T> &operator*() const {
+            return this->current->val;
           }
 
-          friend bool operator!=(const Iterator &it1, const ConstIterator &it2) {
-            return it1.end != it2.end || it1.current != it2.current;
+          pair<Key_T, Mapped_T> *operator->() const {
+            return &(this->current->val);
+          }
+      };
+
+      class ReverseIterator : public BaseIterator {
+        protected:
+          ReverseIterator(Node<Key_T, Mapped_T>* root, bool end = 0, bool start = 0) : BaseIterator(root, end, start) { }
+          friend class Map;
+        public:
+          ReverseIterator &operator++() { //prefix
+            this->goLeft();
+            return *this;
           }
 
-          friend bool operator!=(const ConstIterator &it1, const Iterator &it2) {
-            return it1.end != it2.end || it1.current != it2.current;
+          ReverseIterator operator++(int) { //postfix
+            ReverseIterator temp = *(new ReverseIterator(*this));
+            this->goLeft();
+            return temp;
           }
 
+          ReverseIterator &operator--() { //prefix
+            this->goRight();
+            return *this;
+          }
+
+          ReverseIterator operator--(int) { //postfix
+            ReverseIterator temp = *(new ReverseIterator(*this));
+            this->goRight();
+            return temp;
+          }
+
+          pair<Key_T, Mapped_T> &operator*() const {
+            return this->current->val;
+          }
+
+          pair<Key_T, Mapped_T> *operator->() const {
+            return &(this->current->val);
+          }
       };
 
       Iterator begin() {
@@ -741,15 +729,58 @@ namespace cs540 {
       ConstIterator end() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new ConstIterator(curr, 1));
+        return *(new ConstIterator(curr, 1, 0));
       }
 
       Iterator end() {
         Node<Key_T, Mapped_T> *curr = tree.root;
         while(curr->right != NULL) curr = curr->right;
-        return *(new Iterator(curr, 1));
+        return *(new Iterator(curr, 1, 0));
       }
 
+      ReverseIterator rend() const {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->left != NULL) curr = curr->left;
+        return *(new ReverseIterator(curr, 0, 1));
+      }
+
+      ReverseIterator rbegin() const {
+        Node<Key_T, Mapped_T> *curr = tree.root;
+        while(curr->right != NULL) curr = curr->right;
+        return *(new ReverseIterator(curr));
+      }
+
+      Iterator find(const Key_T &key) {
+        Node<Key_T, Mapped_T> *node = tree.search(key);
+        if(node == NULL) {
+          return end();
+        } else {
+          return *(new Iterator(node));
+        }
+      }
+
+      ConstIterator find(const Key_T &key) const {
+        Node<Key_T, Mapped_T> *node = tree.search(key);
+        if(node == NULL) {
+          return end();
+        } else {
+          return *(new ConstIterator(node));
+        }
+      }
+
+      void erase(Iterator pos) {
+        tree.deleteNode(pos.current);
+      }
+      void erase(const Key_T &key) {
+        Node<Key_T, Mapped_T> *node = tree.search(key);
+        if(node == NULL) {
+          throw std::out_of_range("index is out of range");
+        } else {
+          tree.deleteNode(node);
+        }
+      }
+
+      
 
   };
 }

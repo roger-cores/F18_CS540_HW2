@@ -104,12 +104,20 @@ template class cs540::Map<MyKeyType, MyDefaultConstructible>;
 
 
 int main() {
+
+
+  // Testing Iterators
+
     cs540::Map<MyKeyType, MyValueType> m{{3, 5}};
     m.insert({{2}, {3}});
     m.insert({{1}, {3}});
     m.insert({{5}, {3}});
     m.insert({{7}, {3}});
     m.at(2);
+
+    int arr[] = {1, 2, 3, 5, 7};
+    int i;
+    int l = sizeof(arr)/sizeof(arr[0]);
 
     auto it = m.begin();
     assert(it->first.getKey() == 1);
@@ -152,23 +160,64 @@ int main() {
     assert(end->first.getKey() == 1);
     assert(end2->first.getKey() == 2);
 
+    start = m.begin();
+    cout << endl;
+    i = 0;
+    while(start != m.end()) {
+      cout << start->first.getKey() << ", ";
+      assert(arr[i] == start->first.getKey());
+      ++start;
+      ++i;
+    }
+    cout << endl;
+
+    end = m.end();
+    --end;
+    cout << endl;
+    i = l-1;
+    while(end != (--m.begin())) {
+      cout << end->first.getKey() << ", ";
+      assert(arr[i] == end->first.getKey());
+      --end;
+      --i;
+    }
+    cout << endl;
+
+    auto revit = m.rbegin();
+    cout << endl;
+    i=l-1;
+    while(revit != m.rend()) {
+      cout << revit->first.getKey() << ", ";
+      assert(arr[i] == revit->first.getKey());
+      ++revit;
+      --i;
+    }
+    cout << endl;
 
 
 
 
-    // auto iter = m.find(2);
+
+    auto iter = m.find(2);
+    assert(iter->first.getKey() == 2);
+
     // m.erase(iter);
-    // auto m_copy = m;
+    auto m_copy = m;
+    // m_copy.insert({{123}, {3}});
+    // assert(m_copy.rbegin() != m.rbegin());
     // assert(m_copy == m);
     //
-    // cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
-    // m2[10]; // should default construct these values
-    // m2[15];
+    cs540::Map<MyKeyType, MyDefaultConstructible> m2{{8, 9}};
+    m2[10]; // should default construct these values
+    m2[15];
+
+    assert(m2.find(15)->first == 15); //constructed
+    assert(m2.find(10)->first == 10);
     //
-    // cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
-    // m3[20] = {5}; // move assign
-    // MyAssignable ma{1};
-    // m3[10] = ma; //copy assign
+    cs540::Map<MyKeyType, MyAssignable> m3{{6, 7}};
+    m3[20] = {5}; // move assign
+    MyAssignable ma{1};
+    m3[10] = ma; //copy assign
 
     return 0;
 }
