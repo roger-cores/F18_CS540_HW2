@@ -571,6 +571,7 @@ namespace cs540 {
         while(it1 != m1.end()) { //same size, no need to check more bounds
           if(!(it1->first == it2->first)) return false;
           ++it1;
+          ++it2;
         }
 
         return true;
