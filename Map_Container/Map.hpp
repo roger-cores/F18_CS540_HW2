@@ -420,7 +420,7 @@ namespace cs540 {
       	}
     	}
 
-    	return temp;
+      return temp;
     }
 
     // inserts the given value to tree
@@ -569,7 +569,7 @@ namespace cs540 {
         auto it2 = m2.begin();
 
         while(it1 != m1.end()) { //same size, no need to check more bounds
-          if(!(it1->first == it2->first)) return false;
+          if(!(it1->first == it2->first && it1->second == it2->second)) return false;
           ++it1;
           ++it2;
         }
@@ -579,6 +579,21 @@ namespace cs540 {
 
       friend bool operator!=(const Map &m1, const Map &m2) {
         return !(m1==m2);
+      }
+
+      friend bool operator<(const Map &m1, const Map &m2) {
+        auto it1 = m1.begin();
+        auto it2 = m2.begin();
+
+        while(it1 != m1.end()) { //same size, no need to check more bounds
+          if(!(it1->first < it2->first && it1->second < it2->second)) return false;
+          ++it1;
+          ++it2;
+        }
+
+        if(m1.size() < m2.size()) return true;
+
+        return false;
       }
 
       class BaseIterator {
@@ -633,6 +648,7 @@ namespace cs540 {
 
         public:
           friend bool operator==(const BaseIterator &it1, const BaseIterator &it2) {
+            cout << endl << "{" << it1.end << "," << it2.end << "} " << "{" << it1.start << "," << it2.start << "}" << endl;
             return it1.end == it2.end && it1.start == it2.start && it1.current == it2.current;
           }
 
@@ -788,7 +804,7 @@ namespace cs540 {
 
       Iterator find(const Key_T &key) {
         Node<Key_T, Mapped_T> *node = tree.search(key);
-        if(node == NULL) {
+        if(!(node->val.first == key)) {
           return end();
         } else {
           return *(new Iterator(node));
@@ -797,7 +813,7 @@ namespace cs540 {
 
       ConstIterator find(const Key_T &key) const {
         Node<Key_T, Mapped_T> *node = tree.search(key);
-        if(node == NULL) {
+        if(!(node->val.first == key)) {
           return end();
         } else {
           return *(new ConstIterator(node));
@@ -809,7 +825,7 @@ namespace cs540 {
       }
       void erase(const Key_T &key) {
         Node<Key_T, Mapped_T> *node = tree.search(key);
-        if(node == NULL) {
+        if(!(node->val.first == key)) {
           throw std::out_of_range("index is out of range");
         } else {
           tree.deleteNode(node);

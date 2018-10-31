@@ -238,5 +238,12 @@ int main() {
     MyAssignable ma{1};
     m3[10] = ma; //copy assign
 
+
+    end = m.end();
+    assert(end == std::end(m));
+    end = m.find(31434545);
+    cout << "----" << end->first.getKey() << "----" << endl;
+    assert(end == std::end(m));
+
     return 0;
 }

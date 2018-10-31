@@ -13,14 +13,14 @@ void stress(int stress_size) {
     auto seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine gen(seed);
     std::uniform_int_distribution<unsigned int> dist(0, 10000);
-    
+
     cs540::Map<int, int> m;
-    
+
     for(int i = 0; i < stress_size; ++i) {
         auto g = dist(gen);
         m.insert({g, g});
     }
-    
+
     int num_erases = gen() % m.size();
     for(int i = 0; i < num_erases; ++i) {
         //select a random element
@@ -29,10 +29,10 @@ void stress(int stress_size) {
         for (int j = 0; j < choice; ++j) {
             ++iter;
         }
-        
+
         m.erase(iter);
     }
-    
+
 }
 
 // unrealistic examples
@@ -42,7 +42,7 @@ void access_by_key() {
     m.insert({3, 3});
     m.insert({20, 20});
     m.insert({15, 15});
-    
+
     m.at(10);
     bool thrown = false;
     try {
@@ -51,25 +51,25 @@ void access_by_key() {
         thrown = true;
     }
     assert(thrown); // the .at should have thrown an exception
-    
+
     const auto& m_ref = m;
     m_ref.at(10); // const .at
-    
+
     auto iter = m.find(3);
     assert((*iter).second == 3);
-    
+
     auto iter2 = m.find(100000); // not in map, should give iterator to end()
     assert(iter2 == std::end(m));
-    
+
     m[30] = 30; // should default construct
-    
+
     m.erase(10);
     assert(m.find(10) == std::end(m)); // 10 shouldn't be in the map anymore
 }
 
 void count_words() {
     cs540::Map<std::string, int> words_count;
-    
+
     // just a big list of words
     auto words = {"this", "is", "a", "string", "with", "words", "some",
         "words", "in", "the", "string", "repeat", "the", "more", "they",
@@ -78,7 +78,7 @@ void count_words() {
         "count", "increased"};
 
     for (auto& word : words) {
-        // this works because int can be default constructed, and the 
+        // this works because int can be default constructed, and the
         // default of int (by doing int{} ) is 0.
         words_count[word] += 1; // add 1 to the count
     }
@@ -95,7 +95,7 @@ void count_words() {
             ++riter) {
         std::cout << (*riter).first << ": " << (*riter).second << '\n';
     }
-    
+
 }
 
 // creates a mapping from the values in the range [low, high) to their cubes
