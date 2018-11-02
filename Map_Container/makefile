@@ -6,14 +6,24 @@ all:
 	g++ -g -std=c++11 test.cpp -o test
 	g++ -g -std=c++11 test-scaling.cpp -o testsc
 	g++ -g -std=c++11 morseex.cpp -o morseex
-run:
-	# Insert command to run the executable
+	g++ -g -std=c++11 minimal.cpp -o minimal
+run-test:
 	./test
-	./testsc
+run-minimal:
+	./minimal
+run-morseex:
 	./morseex
-checkmem:
-	# Insert command to run the executable with valgrind
+run-testsc:
+	./testsc
+checkmem-test:
 	valgrind --tool=memcheck --leak-check=full ./test
+checkmem-testsc:
+	valgrind --tool=memcheck --leak-check=full ./testsc
+checkmem-minimal:
+	valgrind --tool=memcheck --leak-check=full ./minimal
+checkmem-morseex:
+	valgrind --tool=memcheck --leak-check=full ./morseex
+
 clean:
 	# Insert command to clean object files, executables
-	rm test testsc morseex
+	rm test testsc morseex minimal Map.hpp.gch

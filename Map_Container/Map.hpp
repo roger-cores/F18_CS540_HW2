@@ -145,6 +145,47 @@ namespace cs540 {
     	v->val = temp;
     }
 
+    void swapPlaces(Node<Key_T, Mapped_T> *u, Node<Key_T, Mapped_T> *v) {
+    	Node<Key_T, Mapped_T> *l, *r, *p;
+
+      //save children of u in temp then swap children of u and v
+      l = u->left;
+      r = u->right;
+      u->left = v->left;
+      if(u->left != NULL) u->left->parent = u;
+      u->right = v->right;
+      if(u->right != NULL) u->right->parent = u;
+      v->left = l;
+      if(v->left != NULL) v->left->parent = v;
+      v->right = r;
+      if(v->right != NULL) v->right->parent = v;
+      r = 0;
+      l = 0; //clear the temp pointers
+
+      if(root == u) { //exchange parent when root
+        root = v;
+      } else if(root == v) {
+        root = u;
+      }
+
+      p = v->parent;
+      int pstat = (v->parent == NULL? 0 : (v->isOnLeft()? 1 : 2 )); //status = 0, if v->parent is null, 1 if v is on left, 2 if v is on right
+      if(u->parent != NULL) {
+        if(u->isOnLeft()) u->parent->left = v;
+        else u->parent->right = v;
+        v->parent = u->parent;
+      }
+
+      if(pstat == 1) {
+        p->left = u;
+      } else if(pstat == 2) {
+        p->right = u;
+      }
+      u->parent = p;
+      p = 0; //clear p
+
+    }
+
     // fix red red at given node
     void fixRedRed(Node<Key_T, Mapped_T> *x) {
     	// if x is root color it black and return
@@ -260,10 +301,11 @@ namespace cs540 {
     	// v has 1 child
     	if (v == root) {
     		// v is root, assign the value of u to v, and delete u
-    		v->val = u->val;
+    		// v->val = u->val;
+        root = u; // v is the root, make u the root, delete v
 
     		v->left = v->right = NULL;
-    		delete u;
+    		delete v;
     	} else {
     		// Detach v from tree and move u up
     		if (v->isOnLeft()) {
@@ -284,9 +326,9 @@ namespace cs540 {
     	return;
     	}
 
-    	// v has 2 children, swap values with successor and recurse
-    	swapValues(u, v);
-    	deleteNode(u);
+    	// v has 2 children, swap values with successor and recurse NOPE
+    	swapPlaces(u, v); // Swap places between u and v so that v becomes the node to be deleted
+    	deleteNode(v);
     }
 
     void fixDoubleBlack(Node<Key_T, Mapped_T> *x) {
@@ -351,45 +393,6 @@ namespace cs540 {
     		}
     	}
     	}
-    }
-
-    // prints level order for given node
-    void levelOrder(Node<Key_T, Mapped_T> *x) {
-    	if (x == NULL)
-    	// return if node is null
-    	return;
-
-    	// queue for level order
-    	queue<Node<Key_T, Mapped_T> *> q;
-    	Node<Key_T, Mapped_T> *curr;
-
-    	// push x
-    	q.push(x);
-
-    	while (!q.empty()) {
-    	// while q is not empty
-    	// dequeue
-    	curr = q.front();
-    	q.pop();
-
-    	// print node value
-    	cout << curr->val << " ";
-
-    	// push children to queue
-    	if (curr->left != NULL)
-    		q.push(curr->left);
-    	if (curr->right != NULL)
-    		q.push(curr->right);
-    	}
-    }
-
-    // prints inorder recursively
-    void inorder(Node<Key_T, Mapped_T> *x) {
-    	if (x == NULL)
-    	return;
-    	inorder(x->left);
-    	cout << (x->val.first) << " ";
-    	inorder(x->right);
     }
 
     public:
@@ -467,31 +470,10 @@ namespace cs540 {
     	Node<Key_T, Mapped_T> *v = search(key), *u;
 
     	if (v->val.first != key) {
-    	cout << "No node found to delete with value:" << key << endl;
     	return;
     	}
 
     	deleteNode(v);
-    }
-
-    // prints inorder of the tree
-    void printInOrder() {
-    	cout << "Inorder: " << endl;
-    	if (root == NULL)
-    	cout << "Tree is empty" << endl;
-    	else
-    	inorder(root);
-    	cout << endl;
-    }
-
-    // prints level order of the tree
-    void printLevelOrder() {
-    	cout << "Level order: " << endl;
-    	if (root == NULL)
-    	cout << "Tree is empty" << endl;
-    	else
-    	levelOrder(root);
-    	cout << endl;
     }
   };
 
@@ -501,32 +483,36 @@ namespace cs540 {
       RBTree<Key_T, Mapped_T> tree;
       size_t length = 0;
 
-      void recurDelete(Node<Key_T,Mapped_T> *node) {
-        if(node==NULL) return;
-        recurDelete(node->left);
-        recurDelete(node->right);
-        delete node;
+      void destructor(Node<Key_T, Mapped_T> *root) {
+        if(root == NULL) return;
+        destructor(root->left);
+        destructor(root->right);
+        delete root;
+      }
+
+      Node<Key_T, Mapped_T>* copyTree(Node<Key_T, Mapped_T> *root) {
+        if(root == NULL) return NULL;
+        Node<Key_T, Mapped_T>* newRoot = new Node<Key_T, Mapped_T>(pair<Key_T, Mapped_T>(Key_T(root->val.first), Mapped_T(root->val.second)));
+        newRoot->left = copyTree(root->left);
+        if(newRoot->left != NULL) newRoot->left->parent = newRoot;
+        newRoot->right = copyTree(root->right);
+        if(newRoot->right != NULL) newRoot->right->parent = newRoot;
+        newRoot->color = root->color;
+
+        return newRoot;
       }
 
     public:
       Map() {} //creates an empty map
 
       Map(const Map &m) {
-        auto it = m.begin();
-        while(it != m.end()){
-          this->tree.insert(pair<Key_T, Mapped_T>(Key_T(it->first), Mapped_T(it->second)));
-          ++it;
-        }
-        length = m.length;
+        this->tree.root = copyTree(m.tree.root);
+        this->length = m.length;
       }
 
-      Map &operator=(const Map &m) { //TODO assignment
-        auto it = m.begin();
-        while(it != m.end()){
-          this->tree.insert(pair<Key_T, Mapped_T>(Key_T(it->first), Mapped_T(it->second)));
-          ++it;
-        }
-        length = m.length;
+      Map &operator=(const Map &m) {
+        this->tree.root = copyTree(m.tree.root);
+        this->length = m.length;
       }
 
       Map(initializer_list<pair<const Key_T, Mapped_T>> list) { //creates from initializer list
@@ -537,7 +523,7 @@ namespace cs540 {
       }
 
       ~Map() { //Destructor
-
+        destructor(tree.root);
       }
 
 
@@ -668,7 +654,6 @@ namespace cs540 {
 
         public:
           friend bool operator==(const BaseIterator &it1, const BaseIterator &it2) {
-            cout << endl << "{" << it1.end << "," << it2.end << "} " << "{" << it1.start << "," << it2.start << "}" << endl;
             return it1.end == it2.end && it1.start == it2.start && it1.current == it2.current;
           }
 
@@ -689,7 +674,7 @@ namespace cs540 {
           }
 
           ConstIterator operator++(int) { //postfix
-            ConstIterator temp = *(new ConstIterator(*this));
+            ConstIterator temp = ConstIterator(this->current);
             this->goRight();
             return temp;
           }
@@ -700,7 +685,7 @@ namespace cs540 {
           }
 
           ConstIterator operator--(int) { //postfix
-            ConstIterator temp = *(new ConstIterator(*this));
+            ConstIterator temp = ConstIterator(this->current);
             this->goLeft();
             return temp;
           }
@@ -725,7 +710,7 @@ namespace cs540 {
           }
 
           Iterator operator++(int) { //postfix
-            Iterator temp = *(new Iterator(*this));
+            Iterator temp = Iterator(this->current);
             this->goRight();
             return temp;
           }
@@ -736,7 +721,7 @@ namespace cs540 {
           }
 
           Iterator operator--(int) { //postfix
-            Iterator temp = *(new Iterator(*this));
+            Iterator temp = Iterator(this->current);
             this->goLeft();
             return temp;
           }
@@ -761,7 +746,7 @@ namespace cs540 {
           }
 
           ReverseIterator operator++(int) { //postfix
-            ReverseIterator temp = *(new ReverseIterator(*this));
+            ReverseIterator temp = ReverseIterator(this->current);
             this->goLeft();
             return temp;
           }
@@ -772,7 +757,7 @@ namespace cs540 {
           }
 
           ReverseIterator operator--(int) { //postfix
-            ReverseIterator temp = *(new ReverseIterator(*this));
+            ReverseIterator temp = ReverseIterator(this->current);
             this->goRight();
             return temp;
           }
