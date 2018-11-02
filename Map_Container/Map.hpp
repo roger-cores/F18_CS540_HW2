@@ -1,10 +1,6 @@
 #include <iostream>
 #include <queue>
 
-
-
-using namespace std;
-
 namespace cs540 {
   enum COLOR { RED, BLACK };
 
@@ -24,7 +20,7 @@ namespace cs540 {
   template <typename Key_T, typename Mapped_T>
   class Node {
     private:
-    pair<Key_T, Mapped_T> val;
+    std::pair<Key_T, Mapped_T> val;
     COLOR color;
     Node *left, *right, *parent;
     friend class RBTree<Key_T, Mapped_T>;
@@ -32,7 +28,7 @@ namespace cs540 {
 
 
     public:
-    Node(const pair<Key_T, Mapped_T> &p) : val(p), left(NULL), right(NULL), parent(NULL), color(RED) { }
+    Node(const std::pair<Key_T, Mapped_T> &p) : val(p), left(NULL), right(NULL), parent(NULL), color(RED) { }
 
     // returns pointer to uncle
     Node *uncle() {
@@ -139,7 +135,7 @@ namespace cs540 {
     }
 
     void swapValues(Node<Key_T, Mapped_T> *u, Node<Key_T, Mapped_T> *v) {
-    	pair<Key_T, Mapped_T> temp;
+    	std::pair<Key_T, Mapped_T> temp;
     	temp = u->val;
     	u->val = v->val;
     	v->val = temp;
@@ -427,7 +423,7 @@ namespace cs540 {
     }
 
     // inserts the given value to tree
-    bool insert(const pair<Key_T, Mapped_T> &n) {
+    std::pair<Node<Key_T, Mapped_T>*, bool> insert(const std::pair<Key_T, Mapped_T> &n) {
     	Node<Key_T, Mapped_T> *newNode = new Node<Key_T, Mapped_T>(n);
     	if (root == NULL) {
     	// when root is null
@@ -441,7 +437,7 @@ namespace cs540 {
     		// return if value already exists
         delete newNode;
         newNode = 0;
-    		return 0;
+    		return std::make_pair(temp, false);
     	}
 
     	// if value is not found, search returns the node
@@ -458,7 +454,7 @@ namespace cs540 {
     	// fix red red voilaton if exists
     	fixRedRed(newNode);
     	}
-      return 1;
+      return std::make_pair(newNode, true);
     }
 
     // utility function that deletes the node with given value
@@ -492,7 +488,7 @@ namespace cs540 {
 
       Node<Key_T, Mapped_T>* copyTree(Node<Key_T, Mapped_T> *root) {
         if(root == NULL) return NULL;
-        Node<Key_T, Mapped_T>* newRoot = new Node<Key_T, Mapped_T>(pair<Key_T, Mapped_T>(Key_T(root->val.first), Mapped_T(root->val.second)));
+        Node<Key_T, Mapped_T>* newRoot = new Node<Key_T, Mapped_T>(std::pair<Key_T, Mapped_T>(Key_T(root->val.first), Mapped_T(root->val.second)));
         newRoot->left = copyTree(root->left);
         if(newRoot->left != NULL) newRoot->left->parent = newRoot;
         newRoot->right = copyTree(root->right);
@@ -515,7 +511,7 @@ namespace cs540 {
         this->length = m.length;
       }
 
-      Map(initializer_list<pair<const Key_T, Mapped_T>> list) { //creates from initializer list
+      Map(std::initializer_list<std::pair<const Key_T, Mapped_T>> list) { //creates from initializer list
         for(auto val : list) {
           tree.insert(val);
           ++length;
@@ -536,15 +532,17 @@ namespace cs540 {
         Node<Key_T, Mapped_T> *node = tree.search(key);
         if(node != NULL && node->val.first == key) return node->val.second;
         else {
-          tree.insert(pair<Key_T, Mapped_T>(key, Mapped_T()));
+          tree.insert(std::pair<Key_T, Mapped_T>(key, Mapped_T()));
           return at(key);
         }
       }
 
-      void insert(const pair<Key_T, Mapped_T> &val) {
-        if(tree.insert(val)) {
-          ++length;
-        }
+      class Iterator;
+
+      std::pair<Iterator, bool> insert(const std::pair<Key_T, Mapped_T> &val) {
+        std::pair<Node<Key_T, Mapped_T>*, bool> result = tree.insert(val);
+        if(result.second) ++length;
+        return std::make_pair(Iterator(result.first), result.second);
       }
 
       template <typename IT_T>
@@ -654,10 +652,12 @@ namespace cs540 {
 
         public:
           friend bool operator==(const BaseIterator &it1, const BaseIterator &it2) {
+            if(it1.current == NULL && it2.current == NULL) return true;
             return it1.end == it2.end && it1.start == it2.start && it1.current == it2.current;
           }
 
           friend bool operator!=(const BaseIterator &it1, const BaseIterator &it2) {
+            if(it1.current == NULL && it2.current == NULL) return false; //NULL means empty list
             return it1.end != it2.end || it1.start != it2.start || it1.current != it2.current;
           }
 
@@ -690,11 +690,11 @@ namespace cs540 {
             return temp;
           }
 
-          const pair<Key_T, Mapped_T> &operator*() const {
+          const std::pair<Key_T, Mapped_T> &operator*() const {
             return this->current->val;
           }
 
-          const pair<Key_T, Mapped_T> *operator->() const {
+          const std::pair<Key_T, Mapped_T> *operator->() const {
             return &(this->current->val);
           }
       };
@@ -726,11 +726,11 @@ namespace cs540 {
             return temp;
           }
 
-          pair<Key_T, Mapped_T> &operator*() const {
+          std::pair<Key_T, Mapped_T> &operator*() const {
             return this->current->val;
           }
 
-          pair<Key_T, Mapped_T> *operator->() const {
+          std::pair<Key_T, Mapped_T> *operator->() const {
             return &(this->current->val);
           }
       };
@@ -762,48 +762,48 @@ namespace cs540 {
             return temp;
           }
 
-          pair<Key_T, Mapped_T> &operator*() const {
+          std::pair<Key_T, Mapped_T> &operator*() const {
             return this->current->val;
           }
 
-          pair<Key_T, Mapped_T> *operator->() const {
+          std::pair<Key_T, Mapped_T> *operator->() const {
             return &(this->current->val);
           }
       };
 
       Iterator begin() {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->left != NULL) curr = curr->left;
+        while(curr!=NULL && curr->left != NULL) curr = curr->left;
         return Iterator(curr);
       }
 
       ConstIterator begin() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->left != NULL) curr = curr->left;
+        while(curr!=NULL && curr->left != NULL) curr = curr->left;
         return ConstIterator(curr);
       }
 
       ConstIterator end() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->right != NULL) curr = curr->right;
+        while(curr!=NULL && curr->right != NULL) curr = curr->right;
         return ConstIterator(curr, 1, 0);
       }
 
       Iterator end() {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->right != NULL) curr = curr->right;
+        while(curr!=NULL && curr->right != NULL) curr = curr->right;
         return Iterator(curr, 1, 0);
       }
 
       ReverseIterator rend() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->left != NULL) curr = curr->left;
+        while(curr!=NULL && curr->left != NULL) curr = curr->left;
         return ReverseIterator(curr, 0, 1);
       }
 
       ReverseIterator rbegin() const {
         Node<Key_T, Mapped_T> *curr = tree.root;
-        while(curr->right != NULL) curr = curr->right;
+        while(curr!=NULL && curr->right != NULL) curr = curr->right;
         return ReverseIterator(curr);
       }
 

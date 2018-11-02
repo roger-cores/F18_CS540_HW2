@@ -152,38 +152,38 @@ void other_tests() {
   assert(end2->first == 2);
 
   start = m.begin();
-  cout << endl;
+  std::cout << std::endl;
   i = 0;
   while(start != m.end()) {
-    cout << start->first << ", ";
+    std::cout << start->first << ", ";
     assert(arr[i] == start->first);
     ++start;
     ++i;
   }
-  cout << endl;
+  std::cout << std::endl;
 
   end = m.end();
   --end;
-  cout << endl;
+  std::cout << std::endl;
   i = l-1;
   while(end != (--m.begin())) {
-    cout << end->first << ", ";
+    std::cout << end->first << ", ";
     assert(arr[i] == end->first);
     --end;
     --i;
   }
-  cout << endl;
+  std::cout << std::endl;
 
   auto revit = m.rbegin();
-  cout << endl;
+  std::cout << std::endl;
   i=l-1;
   while(revit != m.rend()) {
-    cout << revit->first << ", ";
+    std::cout << revit->first << ", ";
     assert(arr[i] == revit->first);
     ++revit;
     --i;
   }
-  cout << endl;
+  std::cout << std::endl;
 
 
 
@@ -197,15 +197,15 @@ void other_tests() {
   auto m_copy_construct (m);
   assert(m_copy_construct.begin()->first == 1);
   start = m_copy_construct.begin();
-  cout << endl;
+  std::cout << std::endl;
   i = 0;
   while(start != m_copy_construct.end()) {
-    cout << start->first << ", ";
+    std::cout << start->first << ", ";
     assert(arr[i] == start->first);
     ++start;
     ++i;
   }
-  cout << endl;
+  std::cout << std::endl;
   assert(m_copy_construct.size() == m.size());
   assert(m_copy_construct == m);
 
@@ -233,7 +233,7 @@ void other_tests() {
   end = m.end();
   assert(end == std::end(m));
   end = m.find(31434545);
-  cout << "----" << end->first << "----" << endl;
+  std::cout << "----" << end->first << "----" << std::endl;
   assert(end == std::end(m));
 
 

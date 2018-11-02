@@ -10,4 +10,4 @@ I found red-black trees too difficult to implement, so I have used implementatio
 
 Tests are written in the function other_tests() in test.cpp
 Memory leaks are removed.
-All files other than test-kec.cpp work.
+All files work.
